@@ -94,4 +94,64 @@ router.get('/check-superadmin', async (req, res) => {
   }
 });
 
+// @desc    Reset super admin password
+// @route   POST /api/init/reset-superadmin-password
+// @access  Public (requires INIT_SECRET_KEY)
+router.post('/reset-superadmin-password', async (req, res) => {
+  try {
+    const { secretKey, newPassword } = req.body;
+
+    // Security check - require a secret key
+    if (secretKey !== process.env.INIT_SECRET_KEY) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid initialization key'
+      });
+    }
+
+    // Validate new password
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters'
+      });
+    }
+
+    // Find super admin
+    const superAdmin = await Dealer.findOne({ role: 'superadmin' });
+    
+    if (!superAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Super Admin account not found'
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    superAdmin.password = hashedPassword;
+    await superAdmin.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Super Admin password updated successfully',
+      admin: {
+        email: superAdmin.email,
+        updatedAt: new Date()
+      }
+    });
+
+  } catch (error) {
+    console.error('Reset super admin password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error resetting password',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 export default router;

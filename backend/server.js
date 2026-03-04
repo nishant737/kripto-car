@@ -25,8 +25,10 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
-  'https://kripto-carrs.vercel.app',
-  process.env.CLIENT_URL,
+  // Production Vercel frontends
+  'https://kripto-car.vercel.app',      // Primary production frontend
+  'https://kripto-carrs.vercel.app',    // Legacy/secondary domain
+  process.env.CLIENT_URL,               // Environment-based origin
   // Development origins
   'http://localhost:5173',
   'http://localhost:3000',

@@ -9,6 +9,7 @@ import dealerRoutes from './routes/dealerRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import superAdminRoutes from './routes/superAdminRoutes.js';
+import initRoutes from './routes/initRoutes.js';
 
 // ES modules fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -95,6 +96,7 @@ app.use('/api/dealer', dealerRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/superadmin', superAdminRoutes);
+app.use('/api/init', initRoutes); // Initialization routes (remove after setup)
 
 // Health check route
 app.get('/api/health', (req, res) => {

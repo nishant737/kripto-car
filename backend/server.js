@@ -25,7 +25,7 @@ const app = express();
 
 // CORS Configuration
 const allowedOrigins = [
-  'https://kriptocar.vercel.app',
+  'https://kripto-carrs.vercel.app',
   process.env.CLIENT_URL,
   // Development origins
   'http://localhost:5173',

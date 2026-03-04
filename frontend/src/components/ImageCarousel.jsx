@@ -8,7 +8,7 @@ export default function ImageCarousel({ images, alt = 'Service image' }) {
   const carouselRef = useRef(null);
 
   // Get API base URL for image paths
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   // Minimum swipe distance (in px) to trigger swipe
   const minSwipeDistance = 50;

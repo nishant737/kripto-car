@@ -295,7 +295,7 @@ const ServiceRegistration = () => {
 
       // Set image previews for existing images
       if (service.images && service.images.length > 0) {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
         const previews = service.images.map(img => `${apiBaseUrl}${img}`);
         setImagePreviews(previews);
       }

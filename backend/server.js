@@ -35,39 +35,50 @@ const allowedOrigins = [
   'http://127.0.0.1:3000'
 ].filter(Boolean); // Remove any undefined values
 
+console.log('🔒 CORS Allowed Origins:', allowedOrigins);
+console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, Postman, curl, or server-to-server)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('✅ CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
+    
+    console.log('🔍 CORS: Checking origin:', origin);
     
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS: Origin allowed:', origin);
       return callback(null, true);
     }
     
     // In development mode, allow localhost on any port
     if (process.env.NODE_ENV !== 'production') {
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        console.log('✅ CORS: Development localhost allowed:', origin);
         return callback(null, true);
       }
     }
     
-    // Origin not allowed - don't throw error, just return false
-    console.warn(`CORS: Blocked origin: ${origin}`);
+    // Origin not allowed
+    console.warn('❌ CORS: Blocked origin:', origin);
     callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 86400, // 24 hours
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
-// Apply CORS middleware
+// Apply CORS middleware FIRST - before any other middleware
 app.use(cors(corsOptions));
 
-// Handle preflight requests explicitly
+// Explicit preflight handler - must be before other routes
 app.options('*', cors(corsOptions));
 
 // Body parsing middleware

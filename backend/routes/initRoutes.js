@@ -117,10 +117,10 @@ router.post('/reset-superadmin-password', async (req, res) => {
       });
     }
 
-    // Find super admin
-    const superAdmin = await Dealer.findOne({ role: 'superadmin' });
+    // Find and delete existing super admin
+    const oldSuperAdmin = await Dealer.findOneAndDelete({ role: 'superadmin' });
     
-    if (!superAdmin) {
+    if (!oldSuperAdmin) {
       return res.status(404).json({
         success: false,
         message: 'Super Admin account not found'
@@ -131,16 +131,20 @@ router.post('/reset-superadmin-password', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password
-    superAdmin.password = hashedPassword;
-    await superAdmin.save();
+    // Create new super admin with same email and new password
+    const newSuperAdmin = await Dealer.create({
+      email: oldSuperAdmin.email,
+      phone: oldSuperAdmin.phone,
+      password: hashedPassword,
+      role: 'superadmin'
+    });
 
     res.status(200).json({
       success: true,
-      message: 'Super Admin password updated successfully',
+      message: 'Super Admin password reset successfully',
       admin: {
-        email: superAdmin.email,
-        updatedAt: new Date()
+        email: newSuperAdmin.email,
+        createdAt: newSuperAdmin.createdAt
       }
     });
 

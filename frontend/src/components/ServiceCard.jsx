@@ -135,10 +135,10 @@ const ServiceCard = ({ service, index }) => {
         />
       )}
       
-      <div className="p-4 sm:p-6 relative z-20 flex flex-col h-full">
+      <div className="p-5 sm:p-6 relative z-20 flex flex-col h-full">
         <h3
           className={`
-            text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4
+            text-xl sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4
             ${highlight ? 'text-black' : 'text-white'}
           `}
           style={{
@@ -153,7 +153,7 @@ const ServiceCard = ({ service, index }) => {
             <li
               key={idx}
               className={`
-                flex items-start text-xs sm:text-sm
+                flex items-start text-sm sm:text-sm
                 ${highlight ? 'text-black/90' : 'text-white'}
               `}
               style={{
@@ -178,9 +178,16 @@ const ServiceCard = ({ service, index }) => {
             scale: 1.02
           }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate(`/service/${encodeURIComponent(title)}`)}
+          onClick={() => {
+            // For "New Cars", redirect to the category selection page
+            if (title === 'New Cars') {
+              navigate('/cars/categories');
+            } else {
+              navigate(`/service/${encodeURIComponent(title)}`);
+            }
+          }}
           className={`
-            mt-auto w-full py-2.5 sm:py-3 px-4 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 transform cursor-pointer shadow-lg
+            mt-auto w-full py-3 sm:py-3 px-4 rounded-lg font-semibold text-sm sm:text-sm transition-all duration-200 transform cursor-pointer shadow-lg
             ${
               highlight
                 ? 'bg-black text-yellow-400 hover:bg-gray-900'
@@ -188,7 +195,7 @@ const ServiceCard = ({ service, index }) => {
             }
           `}
         >
-          View Dealerships →
+          {title === 'New Cars' ? 'Choose Category →' : 'View Dealerships →'}
         </motion.button>
       </div>
       

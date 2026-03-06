@@ -295,19 +295,8 @@ Thank you!
           message: `Booking from Kripto Car website`
         };
 
-        // Log booking data for debugging
-        console.log('=== SAVING BOOKING TO DATABASE ===');
-        console.log('Booking Data:', bookingData);
-        console.log('Service:', serviceName);
-        console.log('Service Category:', serviceCategory?.title);
-        console.log('Timestamp:', new Date().toISOString());
-        console.log('===================================');
-
         // Save booking to database
         const response = await bookingAPI.createBooking(bookingData);
-        
-        console.log('✅ Booking saved successfully!');
-        console.log('Booking ID:', response.booking._id);
 
         // Generate WhatsApp Click-to-Chat link with booking details
         const generatedLink = generateWhatsAppLink();

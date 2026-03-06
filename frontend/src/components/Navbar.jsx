@@ -18,14 +18,17 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           <motion.div 
-            className="flex items-center"
+            className="flex items-center cursor-pointer"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400 }}
+            onClick={() => navigate('/')}
           >
             <div className="flex-shrink-0">
-              <h1 className="text-xl sm:text-2xl font-bold text-white transition-colors duration-300">
-                <span className="text-yellow-400">Kripto</span> Car
-              </h1>
+              <img 
+                src="/kripto-car-logo.png" 
+                alt="Kripto Car Logo" 
+                className="h-20 sm:h-18 md:h-25 w-auto"
+              />
             </div>
           </motion.div>
           

@@ -60,6 +60,11 @@ const DealerBookings = () => {
     navigate('/dealer-dashboard');
   };
 
+  const handleLogout = () => {
+    authUtils.logout();
+    window.location.href = '/';
+  };
+
   // Filter bookings by status
   const filteredBookings = selectedStatus === 'all' 
     ? bookings 
@@ -115,14 +120,40 @@ const DealerBookings = () => {
               </span>
             </motion.div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBack}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-sm transition-colors duration-200 border border-gray-700"
-            >
-              ← Back
-            </motion.button>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/dealer/my-cars')}
+                className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 hover:text-blue-200 rounded-lg font-semibold text-sm transition-colors duration-200 border border-blue-600/50"
+              >
+                📋 My Car Listings
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/dealer/add-car-listing')}
+                className="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-black rounded-lg font-semibold text-sm transition-colors duration-200 border border-yellow-500 shadow-lg shadow-yellow-400/20"
+              >
+                🚗 Add Car Listing
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBack}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-sm transition-colors duration-200 border border-gray-700"
+              >
+                ← Back
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 rounded-lg font-semibold text-sm transition-colors duration-200 border border-red-600/50 text-red-400 hover:text-red-300"
+              >
+                🚪 Logout
+              </motion.button>
+            </div>
           </div>
         </div>
       </motion.div>

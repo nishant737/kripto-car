@@ -181,7 +181,7 @@ export const getPlatformStatistics = async (req, res) => {
 // @access  Private (Super Admin only)
 export const addDealership = async (req, res) => {
   try {
-    const { email, phone, password } = req.body;
+    const { dealershipName, email, phone, password, state, city, assignedServices } = req.body;
 
     // Validate input
     if (!email || !phone || !password) {
@@ -205,12 +205,16 @@ export const addDealership = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new dealer
+    // Create new dealer with assigned services
     const dealer = await Dealer.create({
+      dealershipName,
       email: email.toLowerCase(),
       phone,
+      state,
+      city,
       password: hashedPassword,
-      role: 'dealer'
+      role: 'dealer',
+      assignedServices: assignedServices || []
     });
 
     res.status(201).json({
@@ -218,9 +222,13 @@ export const addDealership = async (req, res) => {
       message: 'Dealership created successfully',
       dealer: {
         id: dealer._id,
+        dealershipName: dealer.dealershipName,
         email: dealer.email,
         phone: dealer.phone,
+        state: dealer.state,
+        city: dealer.city,
         role: dealer.role,
+        assignedServices: dealer.assignedServices,
         createdAt: dealer.createdAt
       }
     });
@@ -247,7 +255,7 @@ export const addDealership = async (req, res) => {
 // @access  Private (Super Admin only)
 export const updateDealership = async (req, res) => {
   try {
-    const { email, phone, password } = req.body;
+    const { dealershipName, email, phone, password, state, city, assignedServices } = req.body;
     const dealerId = req.params.id;
 
     const dealer = await Dealer.findById(dealerId);
@@ -268,8 +276,12 @@ export const updateDealership = async (req, res) => {
     }
 
     // Update fields
+    if (dealershipName !== undefined) dealer.dealershipName = dealershipName;
     if (email) dealer.email = email.toLowerCase();
     if (phone) dealer.phone = phone;
+    if (state !== undefined) dealer.state = state;
+    if (city !== undefined) dealer.city = city;
+    if (assignedServices !== undefined) dealer.assignedServices = assignedServices;
     
     // Update password if provided
     if (password) {
@@ -284,9 +296,13 @@ export const updateDealership = async (req, res) => {
       message: 'Dealership updated successfully',
       dealer: {
         id: dealer._id,
+        dealershipName: dealer.dealershipName,
         email: dealer.email,
         phone: dealer.phone,
+        state: dealer.state,
+        city: dealer.city,
         role: dealer.role,
+        assignedServices: dealer.assignedServices,
         createdAt: dealer.createdAt
       }
     });

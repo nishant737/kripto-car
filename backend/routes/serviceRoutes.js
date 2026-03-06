@@ -1,31 +1,14 @@
 import express from 'express';
 import {
-  createService,
-  getDealerServices,
-  getServiceById,
-  updateService,
-  deleteService,
-  getAllServices,
-  uploadServiceImages,
-  deleteServiceImage
+  getAllServices
 } from '../controllers/serviceController.js';
-import { protect } from '../middleware/auth.js';
-import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
 // Public routes
 router.get('/browse', getAllServices);
 
-// Protected routes (require dealer authentication)
-router.post('/', protect, createService);
-router.get('/my-services', protect, getDealerServices);
-router.get('/:id', protect, getServiceById);
-router.put('/:id', protect, updateService);
-router.delete('/:id', protect, deleteService);
-
-// Image upload routes
-router.post('/upload-images', protect, upload.array('images', 10), uploadServiceImages);
-router.delete('/delete-image', protect, deleteServiceImage);
+// Note: Service creation, update, and deletion are now handled by Super Admin only
+// All service management endpoints have been moved to superAdminRoutes.js
 
 export default router;

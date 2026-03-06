@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const dealerSchema = new mongoose.Schema({
+  dealershipName: {
+    type: String,
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -15,6 +19,14 @@ const dealerSchema = new mongoose.Schema({
     trim: true,
     match: [/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number']
   },
+  state: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -26,6 +38,21 @@ const dealerSchema = new mongoose.Schema({
     default: 'dealer',
     enum: ['dealer', 'superadmin']
   },
+  assignedServices: [{
+    type: String,
+    enum: [
+      'New Cars',
+      'Used Cars',
+      'Tyres & Wheels',
+      'Wheel Alignment & Suspension',
+      'Car Wash & Cleaning',
+      'Car Detailing Services',
+      'Denting & Painting',
+      'Emission Test & Legal Services',
+      'General Service & Maintenance',
+      'Accessories & Customization'
+    ]
+  }],
   createdAt: {
     type: Date,
     default: Date.now

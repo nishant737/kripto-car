@@ -10,6 +10,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import superAdminRoutes from './routes/superAdminRoutes.js';
 import initRoutes from './routes/initRoutes.js';
+import carRoutes from './routes/carRoutes.js';
 
 // ES modules fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -38,35 +39,26 @@ const allowedOrigins = [
   'http://127.0.0.1:3000'
 ].filter(Boolean); // Remove any undefined values
 
-console.log('🔒 CORS Allowed Origins:', allowedOrigins);
-console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
-
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, Postman, curl, or server-to-server)
     if (!origin) {
-      console.log('✅ CORS: Allowing request with no origin');
       return callback(null, true);
     }
     
-    console.log('🔍 CORS: Checking origin:', origin);
-    
     // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
-      console.log('✅ CORS: Origin allowed:', origin);
       return callback(null, true);
     }
     
     // In development mode, allow localhost on any port
     if (process.env.NODE_ENV !== 'production') {
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-        console.log('✅ CORS: Development localhost allowed:', origin);
         return callback(null, true);
       }
     }
     
     // Origin not allowed
-    console.warn('❌ CORS: Blocked origin:', origin);
     callback(null, false);
   },
   credentials: true,
@@ -97,6 +89,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/init', initRoutes); // Initialization routes (remove after setup)
+app.use('/api/cars', carRoutes); // Car listings routes
 
 // Health check route
 app.get('/api/health', (req, res) => {

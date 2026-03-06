@@ -8,34 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // @desc    Create a new dealer service
-// @route   POST /api/services
-// @access  Private (Dealer only)
+// @route   POST /api/superadmin/services
+// @access  Private (Super Admin only)
 export const createService = async (req, res) => {
   try {
     const {
-      businessName,
-      serviceCategory,
-      serviceType,
-      state,
-      city,
-      openingTime,
-      closingTime,
-      contactPhone,
-      description,
-      images
-    } = req.body;
-
-    // Get dealer ID from authenticated user
-    const dealerId = req.dealer._id;
-
-    // Parse images if it's a string (from JSON)
-    let imageArray = [];
-    if (images) {
-      imageArray = typeof images === 'string' ? JSON.parse(images) : images;
-    }
-
-    // Create new service
-    const service = await DealerService.create({
       dealerId,
       businessName,
       serviceCategory,
@@ -45,6 +22,44 @@ export const createService = async (req, res) => {
       openingTime,
       closingTime,
       contactPhone,
+      price,
+      description,
+      images
+    } = req.body;
+
+    // Use dealerId from request body (for Super Admin) or from authenticated user (for Dealer)
+    const serviceDealerId = dealerId || req.dealer._id;
+
+    if (!serviceDealerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dealer ID is required'
+      });
+    }
+
+    // Parse images if it's a string (from JSON)
+    let imageArray = [];
+    if (images) {
+      try {
+        imageArray = typeof images === 'string' ? JSON.parse(images) : images;
+      } catch (parseError) {
+        console.error('Error parsing images:', parseError);
+        imageArray = [];
+      }
+    }
+
+    // Create new service
+    const service = await DealerService.create({
+      dealerId: serviceDealerId,
+      businessName,
+      serviceCategory,
+      serviceType,
+      state,
+      city,
+      openingTime,
+      closingTime,
+      contactPhone,
+      price,
       description,
       images: imageArray
     });
@@ -100,8 +115,8 @@ export const getServiceById = async (req, res) => {
       });
     }
 
-    // Check if the service belongs to the authenticated dealer
-    if (service.dealerId.toString() !== req.dealer._id.toString()) {
+    // Check if the service belongs to the authenticated dealer (or if user is superadmin)
+    if (req.dealer.role !== 'superadmin' && service.dealerId.toString() !== req.dealer._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to access this service'
@@ -135,8 +150,8 @@ export const updateService = async (req, res) => {
       });
     }
 
-    // Check if the service belongs to the authenticated dealer
-    if (service.dealerId.toString() !== req.dealer._id.toString()) {
+    // Check if the service belongs to the authenticated dealer (or if user is superadmin)
+    if (req.dealer.role !== 'superadmin' && service.dealerId.toString() !== req.dealer._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this service'
@@ -185,8 +200,8 @@ export const deleteService = async (req, res) => {
       });
     }
 
-    // Check if the service belongs to the authenticated dealer
-    if (service.dealerId.toString() !== req.dealer._id.toString()) {
+    // Check if the service belongs to the authenticated dealer (or if user is superadmin)
+    if (req.dealer.role !== 'superadmin' && service.dealerId.toString() !== req.dealer._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this service'
@@ -256,8 +271,8 @@ export const getAllServices = async (req, res) => {
 };
 
 // @desc    Upload service images
-// @route   POST /api/services/upload-images
-// @access  Private (Dealer only)
+// @route   POST /api/superadmin/services/upload-images
+// @access  Private (Super Admin only)
 export const uploadServiceImages = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {

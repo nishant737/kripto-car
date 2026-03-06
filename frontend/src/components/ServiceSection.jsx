@@ -7,7 +7,7 @@ import { useNavigateWithTransition } from '../hooks/useNavigate';
 const ServiceSection = () => {
   const navigate = useNavigateWithTransition();
   return (
-    <section id="services" className="relative bg-gradient-to-b from-black via-gray-900 to-black py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section id="services" className="relative bg-gradient-to-b from-black via-gray-900 to-black py-8 sm:py-12 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Subtle Background Animation */}
       <div
         className="absolute inset-0 opacity-5"
@@ -35,7 +35,7 @@ const ServiceSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-8 sm:mb-12"
+          className="text-center mb-6 sm:mb-10"
         >
           <h2 
             className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)] px-4"

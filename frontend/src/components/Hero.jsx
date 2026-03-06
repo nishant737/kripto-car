@@ -40,7 +40,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative bg-gradient-to-br from-black via-gray-900 to-black py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90vh] flex items-center">
+    <section className="relative bg-gradient-to-br from-black via-gray-900 to-black py-8 sm:py-12 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[60vh] md:min-h-[85vh] lg:min-h-[90vh] flex items-center">
       {/* Enhanced Continuous Background Motion Effect */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Primary Animated Gradient - More Visible */}
@@ -224,10 +224,10 @@ const Hero = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-      >
+       >
         <motion.h1 
           variants={itemVariants}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight px-4"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-3 sm:mb-6 leading-tight px-4"
           style={{
             textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)'
           }}
@@ -236,12 +236,12 @@ const Hero = () => {
             Kripto Car
           </span>
           <br className="sm:hidden" />
-          <span className="text-white"> – Bangalore's Complete Car Market</span>
+          <span className="text-white">-Complete Car Market</span>
         </motion.h1>
         
         <motion.p 
           variants={itemVariants}
-          className="text-base sm:text-lg md:text-xl lg:text-2xl text-yellow-400 font-semibold mb-6 sm:mb-8 px-4"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl text-yellow-400 font-semibold mb-4 sm:mb-8 px-4"
           style={{
             textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)'
           }}
@@ -251,17 +251,16 @@ const Hero = () => {
         
         <motion.p 
           variants={itemVariants}
-          className="text-gray-200 text-sm sm:text-base md:text-lg mb-8 sm:mb-10 max-w-3xl mx-auto px-4 leading-relaxed"
+          className="text-gray-200 text-sm sm:text-base md:text-lg mb-6 sm:mb-10 max-w-3xl mx-auto px-4 leading-relaxed"
           style={{
             textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)'
           }}
         >
-          Your one-stop destination for everything automotive in Bangalore. 
-          From buying your dream car to maintaining it with premium services, we've got you covered.
+          Your one-stop destination for everything automotive. From buying your dream car to maintaining it with premium services, we've got you covered.
         </motion.p>
         
         <motion.div 
-          className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4"
+          className="mt-6 sm:mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto px-4"
           variants={containerVariants}
         >
           {[

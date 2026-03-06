@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { serviceAPI, authUtils } from '../utils/api';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import { carCompanies } from '../data/carData';
@@ -98,12 +98,15 @@ const indianStates = [
 ];
 
 const ServiceRegistration = () => {
-  const { category, serviceId } = useParams();
+  const { category, dealerId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [editServiceId, setEditServiceId] = useState(null);
 
   // Decode the category from URL
   const serviceCategory = category ? decodeURIComponent(category) : '';
@@ -178,6 +181,7 @@ const ServiceRegistration = () => {
 
     try {
       setUploadingImages(true);
+      setError('');
 
       // Upload images to server
       const formDataToSend = new FormData();
@@ -187,7 +191,7 @@ const ServiceRegistration = () => {
 
       const response = await serviceAPI.uploadServiceImages(formDataToSend);
       
-      if (response.success) {
+      if (response.success && response.images) {
         // Add uploaded image paths to form data
         setFormData(prev => ({
           ...prev,
@@ -198,12 +202,17 @@ const ServiceRegistration = () => {
         const newPreviews = files.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
         setImageFiles(prev => [...prev, ...files]);
+      } else {
+        throw new Error('Upload failed: No images returned from server');
       }
     } catch (err) {
-      setError(err.message || 'Failed to upload images');
-      setTimeout(() => setError(''), 3000);
+      console.error('Image upload error:', err);
+      setError(err.message || 'Failed to upload images. Please try again.');
+      setTimeout(() => setError(''), 5000);
     } finally {
       setUploadingImages(false);
+      // Reset the file input
+      e.target.value = '';
     }
   };
 
@@ -244,15 +253,23 @@ const ServiceRegistration = () => {
       return;
     }
 
-    // If editing, fetch service data
-    if (serviceId) {
+    // Check if being used by Super Admin
+    const dealerInfo = authUtils.getDealerInfo();
+    if (dealerId && dealerInfo?.role === 'superadmin') {
+      setIsSuperAdmin(true);
+    }
+
+    // Check for serviceId in query params (for editing)
+    const serviceIdFromQuery = searchParams.get('serviceId');
+    if (serviceIdFromQuery) {
+      setEditServiceId(serviceIdFromQuery);
       setIsEditMode(true);
-      fetchServiceData();
+      fetchServiceData(serviceIdFromQuery);
     } else if (!serviceTypeOptions[serviceCategory]) {
       // Validate if the category is valid only for new services
       navigate('/dealer-dashboard');
     }
-  }, [navigate, serviceCategory, serviceId]);
+  }, [navigate, serviceCategory, searchParams]);
 
   // Cleanup object URLs on unmount
   useEffect(() => {
@@ -265,7 +282,7 @@ const ServiceRegistration = () => {
     };
   }, [imagePreviews]);
 
-  const fetchServiceData = async () => {
+  const fetchServiceData = async (serviceId) => {
     try {
       setLoading(true);
       const response = await serviceAPI.getServiceById(serviceId);
@@ -352,19 +369,31 @@ const ServiceRegistration = () => {
         images: JSON.stringify(formData.images)
       };
 
-      if (isEditMode) {
-        await serviceAPI.updateService(serviceId, submitData);
+      // If Super Admin is creating service for a dealer, include dealerId
+      if (isSuperAdmin && dealerId) {
+        submitData.dealerId = dealerId;
+      }
+
+      if (isEditMode && editServiceId) {
+        await serviceAPI.updateService(editServiceId, submitData);
         setSuccess('Service updated successfully!');
       } else {
         await serviceAPI.createService(submitData);
         setSuccess('Service registered successfully!');
       }
       
-      // Redirect to my services after 2 seconds
+      // Redirect based on who is using the form
       setTimeout(() => {
-        navigate('/dealer/my-services');
+        if (isSuperAdmin && dealerId) {
+          // Super Admin - go back to dashboard after edit
+          navigate('/superadmin/dashboard');
+        } else {
+          // Regular dealer - go to my services
+          navigate('/dealer/my-services');
+        }
       }, 2000);
     } catch (err) {
+      console.error('Service submission error:', err);
       setError(err.message || 'Failed to register service. Please try again.');
     } finally {
       setLoading(false);
@@ -372,7 +401,11 @@ const ServiceRegistration = () => {
   };
 
   const handleBack = () => {
-    navigate('/dealer-dashboard');
+    if (isSuperAdmin && dealerId) {
+      navigate('/superadmin/dashboard');
+    } else {
+      navigate('/dealer-dashboard');
+    }
   };
 
   return (
@@ -396,7 +429,7 @@ const ServiceRegistration = () => {
                 <span className="text-yellow-400">Kripto</span> Car
               </h1>
               <span className="ml-3 px-3 py-1 bg-yellow-400/20 text-yellow-400 text-xs font-semibold rounded-full border border-yellow-400/30">
-                Dealer
+                {isSuperAdmin ? 'Super Admin' : 'Dealer'}
               </span>
             </motion.div>
 

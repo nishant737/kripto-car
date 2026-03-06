@@ -36,7 +36,8 @@ const apiRequest = async (endpoint, options = {}) => {
 
 // Dealer Authentication API
 export const dealerAPI = {
-  // Register a new dealer
+  // Note: Dealer registration is now handled by Super Admin only
+  // This endpoint is no longer accessible via the dealer portal UI
   register: async (dealerData) => {
     return apiRequest('/api/dealer/register', {
       method: 'POST',
@@ -61,40 +62,35 @@ export const dealerAPI = {
 };
 
 // Service API
+// Note: Service management is now Super Admin only
+// Dealers no longer have access to create/modify services
 export const serviceAPI = {
-  // Create a new service
+  // Create a new service (Super Admin only)
   createService: async (serviceData) => {
-    return apiRequest('/api/services', {
+    return apiRequest('/api/superadmin/services', {
       method: 'POST',
       body: JSON.stringify(serviceData),
     });
   },
 
-  // Get all services for the authenticated dealer
-  getMyServices: async () => {
-    return apiRequest('/api/services/my-services', {
-      method: 'GET',
-    });
-  },
-
-  // Get a single service by ID
+  // Get a single service by ID (Super Admin only)
   getServiceById: async (id) => {
-    return apiRequest(`/api/services/${id}`, {
+    return apiRequest(`/api/superadmin/services/${id}`, {
       method: 'GET',
     });
   },
 
-  // Update a service
+  // Update a service (Super Admin only)
   updateService: async (id, serviceData) => {
-    return apiRequest(`/api/services/${id}`, {
+    return apiRequest(`/api/superadmin/services/${id}`, {
       method: 'PUT',
       body: JSON.stringify(serviceData),
     });
   },
 
-  // Delete a service
+  // Delete a service (Super Admin only)
   deleteService: async (id) => {
-    return apiRequest(`/api/services/${id}`, {
+    return apiRequest(`/api/superadmin/services/${id}`, {
       method: 'DELETE',
     });
   },
@@ -108,10 +104,10 @@ export const serviceAPI = {
     });
   },
 
-  // Upload service images
+  // Upload service images (Super Admin only)
   uploadServiceImages: async (formData) => {
     const token = localStorage.getItem('dealerToken');
-    const url = `${API_URL}/api/services/upload-images`;
+    const url = `${API_URL}/api/superadmin/services/upload-images`;
     
     try {
       const response = await fetch(url, {
@@ -134,9 +130,9 @@ export const serviceAPI = {
     }
   },
 
-  // Delete a service image
+  // Delete a service image (Super Admin only)
   deleteServiceImage: async (imagePath) => {
-    return apiRequest('/api/services/delete-image', {
+    return apiRequest('/api/superadmin/services/delete-image', {
       method: 'DELETE',
       body: JSON.stringify({ imagePath }),
     });
@@ -248,6 +244,98 @@ export const superAdminAPI = {
   getStatistics: async () => {
     return apiRequest('/api/superadmin/statistics', {
       method: 'GET',
+    });
+  },
+};
+
+// Car API
+export const carAPI = {
+  // Get all cars with optional filters (public)
+  getAllCars: async (filters = {}) => {
+    const queryParams = new URLSearchParams(filters).toString();
+    const endpoint = queryParams ? `/api/cars?${queryParams}` : '/api/cars';
+    return apiRequest(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  // Get filter options (brands, models, cities)
+  getFilterOptions: async () => {
+    return apiRequest('/api/cars/filters/options', {
+      method: 'GET',
+    });
+  },
+
+  // Get single car by ID (public)
+  getCarById: async (id) => {
+    return apiRequest(`/api/cars/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  // Get cars listed by logged-in dealer (Dealer protected)
+  getMyCars: async () => {
+    return apiRequest('/api/dealer/cars', {
+      method: 'GET',
+    });
+  },
+
+  // Add new car listing (Dealer protected)
+  addCar: async (formData) => {
+    const token = localStorage.getItem('dealerToken');
+    const url = `${API_URL}/api/dealer/cars`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData, // Don't set Content-Type, browser will set it with boundary
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to add car listing');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update car listing (Dealer protected)
+  updateCar: async (id, formData) => {
+    const token = localStorage.getItem('dealerToken');
+    const url = `${API_URL}/api/dealer/cars/${id}`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData, // Don't set Content-Type, browser will set it with boundary
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update car listing');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete car listing (Dealer protected)
+  deleteCar: async (id) => {
+    return apiRequest(`/api/dealer/cars/${id}`, {
+      method: 'DELETE',
     });
   },
 };

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { superAdminAPI, authUtils } from '../utils/api';
 import ImageCarousel from '../components/ImageCarousel';
 
 const SuperAdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +25,15 @@ const SuperAdminDashboard = () => {
   const [selectedDealer, setSelectedDealer] = useState(null);
   const [dealerServices, setDealerServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [dealerFormData, setDealerFormData] = useState({ email: '', phone: '', password: '' });
+  const [dealerFormData, setDealerFormData] = useState({ 
+    dealershipName: '',
+    email: '', 
+    phone: '', 
+    password: '',
+    state: '',
+    city: '',
+    assignedServices: [] 
+  });
   
   // Filters
   const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
@@ -98,12 +108,14 @@ const SuperAdminDashboard = () => {
     try {
       setLoading(true);
       setError('');
-      await superAdminAPI.addDealership(dealerFormData);
-      setSuccessMessage('Dealership added successfully!');
+      const response = await superAdminAPI.addDealership(dealerFormData);
+      
       setShowAddDealerModal(false);
-      setDealerFormData({ email: '', phone: '', password: '' });
-      loadDealerships();
-      setTimeout(() => setSuccessMessage(''), 3000);
+      
+      // Navigate to service category selection for the newly created dealer
+      if (response.dealer && response.dealer.id) {
+        navigate(`/superadmin/dealer/${response.dealer.id}/services/select-category`);
+      }
     } catch (err) {
       setError(err.message || 'Failed to add dealership');
     } finally {
@@ -120,7 +132,7 @@ const SuperAdminDashboard = () => {
       setSuccessMessage('Dealership updated successfully!');
       setShowEditDealerModal(false);
       setSelectedDealer(null);
-      setDealerFormData({ email: '', phone: '', password: '' });
+      setDealerFormData({ dealershipName: '', email: '', phone: '', password: '', state: '', city: '', assignedServices: [] });
       loadDealerships();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
@@ -162,7 +174,15 @@ const SuperAdminDashboard = () => {
 
   const openEditModal = (dealer) => {
     setSelectedDealer(dealer);
-    setDealerFormData({ email: dealer.email, phone: dealer.phone, password: '' });
+    setDealerFormData({ 
+      dealershipName: dealer.dealershipName || '',
+      email: dealer.email, 
+      phone: dealer.phone, 
+      password: '', 
+      state: dealer.state || '',
+      city: dealer.city || '',
+      assignedServices: dealer.assignedServices || [] 
+    });
     setShowEditDealerModal(true);
   };
 
@@ -561,6 +581,14 @@ const SuperAdminDashboard = () => {
                               <td className="p-4">
                                 <div className="flex justify-end gap-2">
                                   <motion.button
+                                    onClick={() => navigate(`/superadmin/dealer/${dealer._id}/services/select-category`)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-600/50 rounded-lg text-yellow-400 text-sm font-semibold transition-all shadow-md shadow-yellow-600/10"
+                                  >
+                                    Add Service
+                                  </motion.button>
+                                  <motion.button
                                     onClick={() => loadDealerServices(dealer)}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
@@ -880,7 +908,7 @@ const SuperAdminDashboard = () => {
             onSubmit={handleAddDealership}
             onClose={() => {
               setShowAddDealerModal(false);
-              setDealerFormData({ email: '', phone: '', password: '' });
+              setDealerFormData({ dealershipName: '', email: '', phone: '', password: '', state: '', city: '', assignedServices: [] });
             }}
             loading={loading}
           />
@@ -895,7 +923,7 @@ const SuperAdminDashboard = () => {
             onClose={() => {
               setShowEditDealerModal(false);
               setSelectedDealer(null);
-              setDealerFormData({ email: '', phone: '', password: '' });
+              setDealerFormData({ dealershipName: '', email: '', phone: '', password: '', state: '', city: '', assignedServices: [] });
             }}
             loading={loading}
             isEdit={true}
@@ -1186,7 +1214,14 @@ const BookingCard = ({ booking, onUpdateStatus, index }) => {
 
 // Dealer Services Modal Component
 const DealerServicesModal = ({ dealer, services, loading, onClose }) => {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleEditService = (service) => {
+    // Navigate to service registration page with serviceId for editing
+    navigate(`/superadmin/dealer/${dealer._id}/service/${encodeURIComponent(service.serviceCategory)}/register?serviceId=${service._id}`);
+    onClose();
+  };
 
   return (
     <motion.div
@@ -1244,111 +1279,112 @@ const DealerServicesModal = ({ dealer, services, loading, onClose }) => {
         {!loading && (
           <>
             {services.length > 0 ? (
-              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                {services.map((service, index) => (
-                  <motion.div
-                    key={service._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 rounded-2xl p-6 hover:border-yellow-400/30 transition-all duration-300"
-                  >
-                    <div className="grid lg:grid-cols-3 gap-6">
-                      {/* Service Images */}
-                      <div className="lg:col-span-1">
-                        {service.images && service.images.length > 0 ? (
-                          <div className="relative rounded-xl overflow-hidden bg-gray-800/50 h-64">
-                            <ImageCarousel images={service.images} alt={service.businessName} />
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center h-64 bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-700">
-                            <div className="text-center text-gray-500">
-                              <span className="text-4xl mb-2 block">🖼️</span>
-                              <p className="text-sm">No images available</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                {services.map((service, index) => {
+                  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+                  const firstImage = service.images && service.images.length > 0 
+                    ? `${apiBaseUrl}${service.images[0]}` 
+                    : null;
 
-                      {/* Service Details */}
-                      <div className="lg:col-span-2 space-y-4">
-                        {/* Business Name & Category */}
-                        <div>
-                          <h3 className="text-2xl font-bold text-white mb-2">
+                  return (
+                    <motion.div
+                      key={service._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative overflow-hidden rounded-2xl h-80 group cursor-pointer"
+                      onClick={() => handleEditService(service)}
+                    >
+                      {/* Background Image or Fallback */}
+                      {firstImage ? (
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                          style={{
+                            backgroundImage: `url(${firstImage})`,
+                          }}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
+                      )}
+                      
+                      {/* Dark Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
+                      
+                      {/* Edit Button - Top Right Corner */}
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditService(service);
+                        }}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="absolute top-4 right-4 w-10 h-10 bg-blue-600/30 hover:bg-blue-600/50 backdrop-blur-md border border-blue-400/50 rounded-lg flex items-center justify-center text-blue-300 hover:text-blue-200 transition-all shadow-lg shadow-blue-600/30 z-20"
+                        title="Edit Service"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </motion.button>
+
+                      {/* Content */}
+                      <div className="relative h-full flex flex-col justify-end p-6 z-10">
+                        <div className="space-y-3">
+                          {/* Business Name */}
+                          <h3 className="font-bold text-2xl text-white drop-shadow-lg">
                             {service.businessName}
                           </h3>
+
+                          {/* Tags */}
                           <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-1 bg-yellow-400/20 border border-yellow-400/50 rounded-lg text-yellow-400 text-sm font-semibold">
+                            <span className="px-3 py-1 bg-yellow-400/30 backdrop-blur-sm border border-yellow-400/50 rounded-lg text-yellow-300 text-xs font-semibold">
                               {service.serviceCategory}
                             </span>
-                            <span className="px-3 py-1 bg-blue-400/20 border border-blue-400/50 rounded-lg text-blue-400 text-sm font-semibold">
-                              {service.serviceType}
-                            </span>
                             {service.isActive ? (
-                              <span className="px-3 py-1 bg-green-400/20 border border-green-400/50 rounded-lg text-green-400 text-sm font-semibold">
+                              <span className="px-3 py-1 bg-green-400/30 backdrop-blur-sm border border-green-400/50 rounded-lg text-green-300 text-xs font-semibold">
                                 🟢 Active
                               </span>
                             ) : (
-                              <span className="px-3 py-1 bg-red-400/20 border border-red-400/50 rounded-lg text-red-400 text-sm font-semibold">
+                              <span className="px-3 py-1 bg-red-400/30 backdrop-blur-sm border border-red-400/50 rounded-lg text-red-300 text-xs font-semibold">
                                 🔴 Inactive
                               </span>
                             )}
                           </div>
-                        </div>
 
-                        {/* Description */}
-                        {service.description && (
-                          <div>
-                            <p className="text-sm font-semibold text-gray-400 mb-1">Description</p>
-                            <p className="text-gray-300 leading-relaxed">{service.description}</p>
-                          </div>
-                        )}
-
-                        {/* Key Information Grid */}
-                        <div className="grid md:grid-cols-2 gap-4">
-                          {/* Location */}
-                          <div className="bg-gray-800/30 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-400 mb-1">📍 Location</p>
-                            <p className="text-white font-medium">{service.city}, {service.state}</p>
-                          </div>
-
-                          {/* Contact */}
-                          <div className="bg-gray-800/30 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-400 mb-1">📞 Contact</p>
-                            <p className="text-white font-medium">{service.contactPhone}</p>
+                          {/* Quick Info */}
+                          <div className="space-y-1 text-sm text-gray-200 drop-shadow">
+                            <p className="flex items-center gap-2">
+                              <span>📍</span>
+                              <span>{service.city}, {service.state}</span>
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <span>📞</span>
+                              <span>{service.contactPhone}</span>
+                            </p>
+                            {service.price && (
+                              <p className="flex items-center gap-2">
+                                <span>💰</span>
+                                <span>{service.price}</span>
+                              </p>
+                            )}
                           </div>
 
-                          {/* Working Hours */}
-                          <div className="bg-gray-800/30 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-400 mb-1">🕐 Working Hours</p>
-                            <p className="text-white font-medium">{service.openingTime} - {service.closingTime}</p>
+                          {/* Hover Indicator */}
+                          <div className="pt-2">
+                            <span className="text-yellow-400 text-sm font-semibold flex items-center gap-2 group-hover:gap-3 transition-all">
+                              Click to edit
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </span>
                           </div>
-
-                          {/* Price */}
-                          {service.price && (
-                            <div className="bg-gray-800/30 rounded-lg p-3">
-                              <p className="text-xs font-semibold text-gray-400 mb-1">💰 Price</p>
-                              <p className="text-white font-medium">{service.price}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Timestamp */}
-                        <div className="pt-3 border-t border-gray-700/50">
-                          <p className="text-xs text-gray-500">
-                            Created: {new Date(service.createdAt).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      
+                      {/* Border Glow on Hover */}
+                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-yellow-400/50 rounded-2xl transition-all duration-300" />
+                    </motion.div>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400">
@@ -1385,6 +1421,15 @@ const DealerServicesModal = ({ dealer, services, loading, onClose }) => {
 
 // Enhanced Dealer Modal Component
 const DealerModal = ({ title, formData, setFormData, onSubmit, onClose, loading, isEdit = false }) => {
+  const indianStates = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry'
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1397,7 +1442,7 @@ const DealerModal = ({ title, formData, setFormData, onSubmit, onClose, loading,
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border border-yellow-400/30 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+        className="bg-gradient-to-br from-gray-900 via-black to-gray-900 border border-yellow-400/30 rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -1415,6 +1460,47 @@ const DealerModal = ({ title, formData, setFormData, onSubmit, onClose, loading,
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold mb-2 text-gray-300">Dealership Name</label>
+            <input
+              type="text"
+              value={formData.dealershipName || ''}
+              onChange={(e) => setFormData({ ...formData, dealershipName: e.target.value })}
+              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition-all"
+              placeholder="Enter dealership name"
+              required={!isEdit}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-300">State</label>
+              <select
+                value={formData.state || ''}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition-all text-white"
+                required={!isEdit}
+              >
+                <option value="">Select State</option>
+                {indianStates.map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-300">City</label>
+              <input
+                type="text"
+                value={formData.city || ''}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition-all"
+                placeholder="Enter city"
+                required={!isEdit}
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold mb-2 text-gray-300">Email Address</label>
             <input
@@ -1454,6 +1540,14 @@ const DealerModal = ({ title, formData, setFormData, onSubmit, onClose, loading,
               required={!isEdit}
             />
           </div>
+
+          {!isEdit && (
+            <div className="bg-blue-950/30 border border-blue-500/30 rounded-xl p-4">
+              <p className="text-sm text-blue-300">
+                <strong>Note:</strong> After creating the dealership, you will be redirected to configure services for this dealer.
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <motion.button

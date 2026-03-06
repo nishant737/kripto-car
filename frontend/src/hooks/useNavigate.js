@@ -20,6 +20,10 @@ export const useNavigateWithTransition = () => {
       } else if (url.includes('?') || url.startsWith('/')) {
         // React Router navigation (routes with query params or absolute paths)
         routerNavigate(url);
+        // Ensure scroll to top after navigation
+        setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        }, 0);
       } else {
         // Fallback to window navigation
         window.location.href = url;
